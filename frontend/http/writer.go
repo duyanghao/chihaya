@@ -27,6 +27,7 @@ func WriteError(w http.ResponseWriter, err error) error {
 // WriteAnnounceResponse communicates the results of an Announce to a
 // BitTorrent client over HTTP.
 func WriteAnnounceResponse(w http.ResponseWriter, resp *bittorrent.AnnounceResponse) error {
+	log.Debugf("Response: %#v", resp)
 	bdict := bencode.Dict{
 		"complete":     resp.Complete,
 		"incomplete":   resp.Incomplete,

@@ -116,8 +116,14 @@ After all PreHooks have executed, any missing response fields that are required 
 PostHooks are asynchronous tasks that occur after a response has been delivered to the client.
 Request data is written to the storage asynchronously in one of these PostHooks.
 
+### HA(High Availability)
+
+Chihaya can achieve high availability by using [redis](https://redis.io/) storage backend.
+
 ## Related projects
 
 - [BitTorrent.org](https://github.com/bittorrent/bittorrent.org): a static website containing the BitTorrent spec and all BEPs
 - [OpenTracker](http://erdgeist.org/arts/software/opentracker): a popular BitTorrent tracker written in C
 - [Ocelot](https://github.com/WhatCD/Ocelot): a private BitTorrent tracker written in C++
+- [Distributed locks with Redis](https://redis.io/topics/distlock)
+- [redsync](https://godoc.org/gopkg.in/redsync.v1)

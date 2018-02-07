@@ -15,7 +15,9 @@ import (
 	httpfrontend "github.com/chihaya/chihaya/frontend/http"
 	udpfrontend "github.com/chihaya/chihaya/frontend/udp"
 	"github.com/chihaya/chihaya/middleware"
+	"github.com/chihaya/chihaya/storage"
 	"github.com/chihaya/chihaya/storage/memory"
+	"github.com/chihaya/chihaya/storage/redis"
 )
 
 func rootCmdRun(cmd *cobra.Command, args []string) error {
@@ -36,12 +38,13 @@ func rootCmdRun(cmd *cobra.Command, args []string) error {
 	}
 
 	configFilePath, _ := cmd.Flags().GetString("config")
+	log.Debugf("configFilePath: %s", configFilePath)
 	configFile, err := ParseConfigFile(configFilePath)
 	if err != nil {
 		return errors.New("failed to read config: " + err.Error())
 	}
 	cfg := configFile.MainConfigBlock
-
+	log.Debugf("Main config block: %v", cfg)
 	go func() {
 		promServer := http.Server{
 			Addr:    cfg.PrometheusAddr,
@@ -53,10 +56,20 @@ func rootCmdRun(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
+	var peerStore storage.PeerStore
 	// Force the compiler to enforce memory against the storage interface.
-	peerStore, err := memory.New(cfg.Storage)
-	if err != nil {
-		return errors.New("failed to create memory storage: " + err.Error())
+	if cfg.Storage.GarbageCollectionInterval > 0 {
+		peerStore, err = memory.New(cfg.Storage)
+		if err != nil {
+			return errors.New("failed to create memory storage: " + err.Error())
+		}
+	} else if cfg.RedisStorage.GarbageCollectionInterval > 0 {
+		peerStore, err = redis.New(cfg.RedisStorage)
+		if err != nil {
+			return errors.New("failed to create redis storage: " + err.Error())
+		}
+	} else {
+		return errors.New("invalid storage configuration.")
 	}
 
 	preHooks, postHooks, err := configFile.CreateHooks()

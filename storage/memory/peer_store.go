@@ -113,6 +113,9 @@ func decodePeerKey(pk serializedPeer) bittorrent.Peer {
 }
 
 func (s *peerStore) PutSeeder(ih bittorrent.InfoHash, p bittorrent.Peer) error {
+	log.Debugf("PutSeeder InfoHash:%s Peer:[ID: %s, IP: %s, Port %d]", ih.String(),
+		p.ID.String(), p.IP.String(), p.Port)
+
 	select {
 	case <-s.closed:
 		panic("attempted to interact with stopped memory store")
@@ -138,6 +141,8 @@ func (s *peerStore) PutSeeder(ih bittorrent.InfoHash, p bittorrent.Peer) error {
 }
 
 func (s *peerStore) DeleteSeeder(ih bittorrent.InfoHash, p bittorrent.Peer) error {
+	log.Debugf("DeleteSeeder InfoHash:%s Peer:[ID: %s, IP: %s, Port %d]", ih.String(),
+		p.ID.String(), p.IP.String(), p.Port)
 	select {
 	case <-s.closed:
 		panic("attempted to interact with stopped memory store")
@@ -170,6 +175,8 @@ func (s *peerStore) DeleteSeeder(ih bittorrent.InfoHash, p bittorrent.Peer) erro
 }
 
 func (s *peerStore) PutLeecher(ih bittorrent.InfoHash, p bittorrent.Peer) error {
+	log.Debugf("PutLeecher InfoHash:%s Peer:[ID: %s, IP: %s, Port %d]", ih.String(),
+		p.ID.String(), p.IP.String(), p.Port)
 	select {
 	case <-s.closed:
 		panic("attempted to interact with stopped memory store")
@@ -195,6 +202,8 @@ func (s *peerStore) PutLeecher(ih bittorrent.InfoHash, p bittorrent.Peer) error 
 }
 
 func (s *peerStore) DeleteLeecher(ih bittorrent.InfoHash, p bittorrent.Peer) error {
+	log.Debugf("DeleteLeecher InfoHash:%s Peer:[ID: %s, IP: %s, Port %d]", ih.String(),
+		p.ID.String(), p.IP.String(), p.Port)
 	select {
 	case <-s.closed:
 		panic("attempted to interact with stopped memory store")
@@ -227,6 +236,8 @@ func (s *peerStore) DeleteLeecher(ih bittorrent.InfoHash, p bittorrent.Peer) err
 }
 
 func (s *peerStore) GraduateLeecher(ih bittorrent.InfoHash, p bittorrent.Peer) error {
+	log.Debugf("GraduateLeecher InfoHash:%s Peer:[ID: %s, IP: %s, Port %d]", ih.String(),
+		p.ID.String(), p.IP.String(), p.Port)
 	select {
 	case <-s.closed:
 		panic("attempted to interact with stopped memory store")
@@ -254,6 +265,8 @@ func (s *peerStore) GraduateLeecher(ih bittorrent.InfoHash, p bittorrent.Peer) e
 }
 
 func (s *peerStore) AnnouncePeers(ih bittorrent.InfoHash, seeder bool, numWant int, announcer bittorrent.Peer) (peers []bittorrent.Peer, err error) {
+	log.Debugf("AnnouncePeers InfoHash:%s, seeder: %v, numWant: %d, Peer:[ID: %s, IP: %s, Port %d]", ih.String(), seeder, numWant,
+		announcer.ID.String(), announcer.IP.String(), announcer.Port)
 	select {
 	case <-s.closed:
 		panic("attempted to interact with stopped memory store")
@@ -375,12 +388,16 @@ func (s *peerStore) collectGarbage(cutoff time.Time) error {
 			for pk, mtime := range shard.swarms[ih].leechers {
 				if mtime <= cutoffUnix {
 					delete(shard.swarms[ih].leechers, pk)
+					p := decodePeerKey(pk)
+					log.Debugf("Deleting peer: [%s, %s, %d]", p.ID.String(), p.IP.String(), p.Port)
 				}
 			}
 
 			for pk, mtime := range shard.swarms[ih].seeders {
 				if mtime <= cutoffUnix {
 					delete(shard.swarms[ih].seeders, pk)
+					p := decodePeerKey(pk)
+					log.Debugf("Deleting peer: [%s, %s, %d]", p.ID.String(), p.IP.String(), p.Port)
 				}
 			}
 
